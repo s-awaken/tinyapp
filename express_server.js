@@ -10,7 +10,8 @@ const urlDatabase = {
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  let templateVars = { greeting: "Hello World!"};
+  res.render("hello_world", templateVars);
 });
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
