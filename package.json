@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/s-awaken/tinyapp/issues"
   },
-  "homepage": "https://github.com/s-awaken/tinyapp#readme"
+  "homepage": "https://github.com/s-awaken/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
