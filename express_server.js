@@ -38,22 +38,31 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render('urls_show', templateVars);
 });
 
+// NEW URL
+app.post("/urls", (req, res) => {
+  const shortURL = gerenateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`/urls`);
+});
+// DELETE URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect(`/urls/`);
 });
 
-
+// EDIT URL
+app.post("/urls/:shortURL/edit", (req, res) => {
+  console.log("inside edit post request");
+  const shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`/urls/`);
+});
+// GET URL JSON
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.post("/urls", (req, res) => {
-  const shortURL = gerenateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect(`/urls`);
-});
 
 
 app.listen(PORT, () => {
