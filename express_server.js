@@ -34,15 +34,19 @@ const gerenateRandomString = () => {
   return Math.random().toString(36).substr(2, 6);
 };
 
-const findEmailInUsers = (email) => {
-  let found = null;
-  for (const user in users) {
-    if (user.email === email)
-      found = true;
+const findUserByEmail = (email) => {
+  for (const userId in users) {
+    const user = users[userId];
+    if (user.email === email) {
+      return user;
+    }
   }
-  return found;
+  return null;
 };
-
+// --- URLs ---
+app.get("/", (req, res) => {
+  res.render("index");
+});
 app.get("/urls", (req, res) => {
   if (req.cookies["user_id"]) {
     const id = req.cookies["user_id"];
@@ -55,7 +59,7 @@ app.get("/urls", (req, res) => {
     console.log(req.cookies);
     res.render("urls_index", templateVars);
   } else {
-    res.send("You have to log in or register first");
+    res.render("index");
   }
 });
 
@@ -76,7 +80,9 @@ app.get("/urls/new", (req, res) => {
   let templateVars = {email: user.email };
   res.render("urls_new", templateVars);
 });
-// REGISTER
+
+// --- REGISTER ---
+
 app.get("/register", (req, res) => {
   res.render("register");
 });
@@ -85,34 +91,48 @@ app.post("/register", (req, res) => {
   const id = gerenateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-  const found = findEmailInUsers(email);
+  const foundUser = findUserByEmail(email);
 
   if (!email && !password) {
-    return res.send('400 email or password cannot be blank');
+    return res.sendStatus(400);
   }
-  if (found) {
-    return res.send('400 email is already in use');
+  if (foundUser) {
+    return res.sendStatus(400);
   }
-
-  users[id] = {id, email, password};
+  const newUser = {id: id, email: email, password: password};
+  users[id] = newUser;
   console.log(users);
   res.cookie("user_id", id);
 
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
-//LOGIN
+// --- LOGIN ---
 app.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
 
+  if (!email || !password) {
+    return res.send('email and password cannot be blank');
+  }
+
+  const foundUser = findUserByEmail(email);
+
+  if (foundUser === null || foundUser.password !== password) {
+    return res.sendStatus(403);
+  }
+  res.cookie('user_id', foundUser.id);
   res.redirect("/urls");
 });
 app.get("/login", (req, res) => {
+  
   res.render("login");
 });
+
 //LOGOUT
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 // NEW URL
