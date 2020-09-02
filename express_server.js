@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+
 const app = express();
 const PORT = 8080;
 
@@ -9,9 +10,7 @@ const PORT = 8080;
 app.set("view engine", "ejs");
 
 app.use(morgan('dev'));
-
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(cookieParser());
 
 
@@ -33,22 +32,6 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-//LOGIN
-app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username);
-  res.redirect("/urls");
-});
-//LOGOUT
-app.post("/logout", (req, res) => {
-  res.cookie('username', req.body.username);
-  res.clearCookie('username');
-  res.redirect("/urls");
-});
-app.get("/urls/new", (req, res) => {
-  let templateVars = {username: req.cookies["username"] };
-  res.render("urls_new", templateVars);
-});
-
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   let templateVars = {
@@ -58,12 +41,38 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render('urls_show', templateVars);
 });
 
+app.get("/urls/new", (req, res) => {
+  let templateVars = {username: req.cookies["username"] };
+  res.render("urls_new", templateVars);
+});
+// REGISTER
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+app.post("/register", (req, res) => {
+  
+});
+
+//LOGIN
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
+  res.redirect("/urls");
+});
+
+//LOGOUT
+app.post("/logout", (req, res) => {
+  res.cookie('username', req.body.username);
+  res.clearCookie('username');
+  res.redirect("/urls");
+});
+
 // NEW URL
 app.post("/urls", (req, res) => {
   const shortURL = gerenateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls`);
 });
+
 // DELETE URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
@@ -73,7 +82,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 // EDIT URL
 app.post("/urls/:shortURL/edit", (req, res) => {
-  console.log("inside edit post request");
   const shortURL = req.params.shortURL;
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/`);
@@ -82,8 +90,6 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
-
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port: http://localhost:${PORT}`);
