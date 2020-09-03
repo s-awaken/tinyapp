@@ -14,14 +14,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 const users = {
-  "13be14": {
-    id: "13be14",
+  "aJ48lW": {
+    id: "aJ48lW",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "123"
   },
   "12bn13": {
     id: "12bn13",
@@ -53,32 +53,34 @@ app.get("/urls", (req, res) => {
     const user = users[id];
     console.log(user);
     let templateVars = {
-      email: user.email, // problem here
+      userId: id,
+      email: user.email,
       urls: urlDatabase
     };
-    console.log(req.cookies);
     res.render("urls_index", templateVars);
   } else {
-    res.render("index");
+    res.render("login");
   }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const id = req.cookies["user_id"];
-  const user = users[id];
   const shortURL = req.params.shortURL;
+  const id = req.cookies["user_id"];
   let templateVars = {
-    email: user.email,
-    shortURL: req.params.shortURL, longURL: urlDatabase[shortURL]
+    shortURL: req.params.shortURL, longURL: urlDatabase[shortURL], userId: id
   };
   res.render('urls_show', templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const id = req.cookies["user_id"];
-  const user = users[id];
-  let templateVars = {email: user.email };
-  res.render("urls_new", templateVars);
+  if (req.cookies["user_id"]) {
+    const id = req.cookies["user_id"];
+    const user = users[id];
+    let templateVars = { email: user.email, userId: id };
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 // --- REGISTER ---
@@ -125,8 +127,15 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 app.get("/login", (req, res) => {
-  
-  res.render("login");
+  if (req.cookies['user_id'] !== undefined) {
+    res.redirect("/urls");
+  } else {
+    const userId = req.cookies["user_id"];
+    console.log(userId);
+    let templateVars = { 'userId': userId };
+    res.render("login", templateVars);
+
+  }
 });
 
 //LOGOUT
