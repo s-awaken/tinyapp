@@ -34,8 +34,8 @@ const findUserByEmail = (email) => {
 };
 const findEmailByID = (id) => {
   for (const user in users) {
-    if (user.id === id) {
-      return user.email;
+    if (users[id] === id) {
+      return user[id].email;
     }
   }
   return;
@@ -62,14 +62,12 @@ const users = {
   "aJ48lW": {
     id: "aJ48lW",
     email: "user@example.com",
-    password: "123",
-    logged: false
+    password: "123"
   },
   "12bn13": {
     id: "12bn13",
     email: "user2@example.com",
-    password: '456',
-    logged: false
+    password: '456'
   }
 };
 // --- URLs ---
@@ -79,11 +77,12 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   if (req.session["user_id"]) {
     const id = req.session["user_id"];
-    const user = findEmailByID(id);
+    const email = findEmailByID(id);
+
     const URLs = urlsForUser(id);
     let templateVars = {
       userId: id,
-      email: user,
+      email: email,
       urls: URLs
     };
     res.render("urls_index", templateVars);
@@ -91,30 +90,27 @@ app.get("/urls", (req, res) => {
     res.render("login");
   }
 });
-
-app.get("/urls/:shortURL/show", (req, res) => {
-  if (req.session["user_id"]) {
-    const shortURL = req.params.shortURL;
-    const id = req.session["user_id"];
-    const user = findEmailByID(id);
-    let templateVars = {
-      shortURL: req.params.shortURL, longURL: urlDatabase[shortURL], userId: id, email: user
-    };
-    res.render('urls_show', templateVars);
-  }
-});
-
 app.get("/urls/new", (req, res) => {
   if (req.session["user_id"]) {
     const id = req.session["user_id"];
-    const user = findEmailByID(id);
-    let templateVars = {userId: id, email: user};
+    const email = findEmailByID(id);
+    let templateVars = {userId: id, email: email};
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login");
   }
 });
-
+app.get("/urls/:shortURL", (req, res) => {
+  if (req.session["user_id"]) {
+    const shortURL = req.params.shortURL;
+    const id = req.session["user_id"];
+    const email = findEmailByID(id);
+    let templateVars = {
+      shortURL: req.params.shortURL, longURL: urlDatabase[shortURL].longURL, userId: id, email: email
+    };
+    res.render('urls_show', templateVars);
+  }
+});
 // --- REGISTER ---
 
 app.get("/register", (req, res) => {
@@ -126,19 +122,21 @@ app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const foundUser = findUserByEmail(email);
-  const hashedPassword = hashPassword(password);
+  console.log(foundUser);
+  if (!email || !password) {
+    return res.sendStatus(400);
+  }
+  if (foundUser !== null) {
+    return res.sendStatus(400);
+  }
 
-  if (!email && !password) {
-    return res.sendStatus(400);
-  }
-  if (foundUser) {
-    return res.sendStatus(400);
-  }
+  const hashedPassword = hashPassword(password);
   const newUser = {id: id, email: email, password: hashedPassword};
+  
   users[id] = newUser;
   req.session["user_id"] = id;
 
-  res.redirect("/login");
+  res.redirect("/urls");
 });
 
 // --- LOGIN ---
@@ -177,7 +175,7 @@ app.get("/login", (req, res) => {
 
 // --- LOGOUT ---
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
+  req.session["user_id"] = null;
   res.redirect("/login");
 });
 

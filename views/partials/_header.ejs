@@ -11,13 +11,13 @@
       </div>
       <div class="navbar-nav ml-auto">
       <% if(!email) { %>
-        <a href="/register" class="nav-item nav-link">Register</a>
-        <a href="/login" class="nav-item nav-link">Login</a>
-      <% } else { %>
-        <span><b>Logged in as: <%= email %></b></span>
+        <span>Logged in as: <%= email %></span>
         <form class="form-inline" action="/logout" method="post">
           <button class="btn btn-outline-dark my-2 my-sm-0" type="submit" value="logout">Logout</button>
         </form>
+        <% } else { %>
+          <a href="/register" class="nav-item nav-link">Register</a>
+          <a href="/login" class="nav-item nav-link">Login</a>
       <% } %> 
       </div>
     </div>
