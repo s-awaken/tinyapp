@@ -4,6 +4,7 @@ const cookieSession = require('cookie-session');
 const morgan = require('morgan');
 const bcrypt = require('bcrypt');
 
+const { generateRandomString,findUserByEmail, findEmailByID, urlsForUser, hashPassword } = require("./helpers");
 
 const app = express();
 const PORT = 8080;
@@ -18,38 +19,6 @@ app.use(cookieSession({
   keys: ['key1', "key2"]
 }));
 
-
-const generateRandomString = () => {
-  return Math.random().toString(36).substr(2, 6);
-};
-const findUserByEmail = (email) => {
-  for (const userId in users) {
-    if (users[userId].email === email) {
-      return users[userId];
-    }
-  }
-  return null;
-};
-const findEmailByID = (id) => {
-  for (const userId in users) {
-    if (userId === id) {
-      return users[id].email;
-    }
-  }
-  return;
-};
-const urlsForUser = (id) => {
-  const URLs = {};
-  for (const url in urlDatabase) {
-    if (id === urlDatabase[url].userID) {
-      URLs[url] = urlDatabase[url].longURL;
-    }
-  }
-  return URLs;
-};
-const hashPassword = (password) => {
-  return bcrypt.hashSync(password, 2);
-};
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
@@ -75,9 +44,9 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   if (req.session["user_id"]) {
     const id = req.session["user_id"];
-    const email = findEmailByID(id);
+    const email = findEmailByID(id, users);
     console.log(email);
-    const URLs = urlsForUser(id);
+    const URLs = urlsForUser(id, urlDatabase);
     let templateVars = {
       userId: id,
       email: email,
@@ -91,7 +60,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   if (req.session["user_id"]) {
     const id = req.session["user_id"];
-    const email = findEmailByID(id);
+    const email = findEmailByID(id, users);
     let templateVars = {userId: id, email: email};
     res.render("urls_new", templateVars);
   } else {
@@ -102,7 +71,7 @@ app.get("/urls/:shortURL", (req, res) => {
   if (req.session["user_id"]) {
     const shortURL = req.params.shortURL;
     const id = req.session["user_id"];
-    const email = findEmailByID(id);
+    const email = findEmailByID(id, users);
     let templateVars = {
       shortURL: req.params.shortURL, longURL: urlDatabase[shortURL].longURL, userId: id, email: email
     };
@@ -119,7 +88,7 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-  const foundUser = findUserByEmail(email);
+  const foundUser = findUserByEmail(email, users);
   console.log(foundUser);
   if (!email || !password) {
     return res.sendStatus(400);
@@ -144,7 +113,7 @@ app.post("/login", (req, res) => {
   
   const hashedPassword = hashPassword(password);
 
-  const foundUser = findUserByEmail(email);
+  const foundUser = findUserByEmail(email, users);
 
   if (foundUser !== null) {
 
@@ -216,3 +185,6 @@ app.get("/urls.json", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port: http://localhost:${PORT}`);
 });
+
+
+module.exports = { findUserByEmail, findEmailByID, urlsForUser, hashPassword};
