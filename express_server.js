@@ -37,15 +37,15 @@ const users = {
     password: '456'
   }
 };
-// --- URLs ---
+// --- login or register ---
 app.get("/", (req, res) => {
   res.render("index");
 });
+// --- URLs page ---
 app.get("/urls", (req, res) => {
   if (req.session["user_id"]) {
     const id = req.session["user_id"];
     const email = findEmailByID(id, users);
-    console.log(email);
     const URLs = urlsForUser(id, urlDatabase);
     let templateVars = {
       userId: id,
@@ -57,6 +57,7 @@ app.get("/urls", (req, res) => {
     res.render("login");
   }
 });
+// --- create new URL page ---
 app.get("/urls/new", (req, res) => {
   if (req.session["user_id"]) {
     const id = req.session["user_id"];
@@ -67,6 +68,7 @@ app.get("/urls/new", (req, res) => {
     res.redirect("/login");
   }
 });
+// -- View URLs --
 app.get("/urls/:shortURL", (req, res) => {
   if (req.session["user_id"]) {
     const shortURL = req.params.shortURL;
@@ -78,6 +80,8 @@ app.get("/urls/:shortURL", (req, res) => {
     res.render('urls_show', templateVars);
   }
 });
+
+// -- short URL redirection --
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
 
@@ -86,11 +90,10 @@ app.get("/u/:shortURL", (req, res) => {
 
 });
 // --- REGISTER ---
-
 app.get("/register", (req, res) => {
   res.render("register");
 });
-
+// -- Registration Page --
 app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
@@ -120,7 +123,6 @@ app.post("/login", (req, res) => {
   const foundUser = findUserByEmail(email, users);
 
   if (foundUser) {
-    console.log(foundUser);
     bcrypt.compare(password, users[foundUser.id].password, (err, result) => {
       if (result) {
         req.session['user_id'] = foundUser.id;
@@ -136,6 +138,7 @@ app.post("/login", (req, res) => {
   }
   
 });
+// -- Login Page --
 app.get("/login", (req, res) => {
   if (!req.session['user_id']) {
     res.render("login");
@@ -150,7 +153,8 @@ app.post("/logout", (req, res) => {
   res.redirect("/login");
 });
 
-// --- NEW URL ---
+
+// --- Create new URL ---
 app.post("/urls/new", (req, res) => {
   if (req.session["user_id"]) {
     const shortURL = generateRandomString();
@@ -171,7 +175,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 });
 
-// EDIT URL
+// --- EDIT URLs ---
 app.post("/urls/:shortURL/edit", (req, res) => {
   if (req.session["user_id"]) {
     const shortURL = req.params.shortURL;
@@ -198,8 +202,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port: http://localhost:${PORT}`);
+  console.log(`TinyApp listening on port: http://localhost:${PORT}`);
 });
 
 
-module.exports = { findUserByEmail, findEmailByID, urlsForUser, hashPassword};
