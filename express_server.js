@@ -89,21 +89,19 @@ app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const foundUser = findUserByEmail(email, users);
-  console.log(foundUser);
-  if (!email || !password) {
-    return res.sendStatus(400);
-  }
-  if (foundUser !== null) {
-    return res.sendStatus(400);
-  }
 
-  const hashedPassword = hashPassword(password);
-  const newUser = {id: id, email: email, password: hashedPassword};
-  
-  users[id] = newUser;
-  req.session["user_id"] = id;
-
-  res.redirect("/urls");
+  if (email && password && foundUser === null) {
+    
+    const hashedPassword = hashPassword(password);
+    
+    users[id] =  {id: id, email: email, password: hashedPassword};
+    
+    req.session["user_id"] = id;
+    
+    res.redirect("/urls");
+  } else {
+    res.redirect("/register");
+  }
 });
 
 // --- LOGIN ---
@@ -111,13 +109,12 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   
-  const hashedPassword = hashPassword(password);
 
   const foundUser = findUserByEmail(email, users);
 
-  if (foundUser !== null) {
-
-    bcrypt.compare(users[foundUser.id].password, hashedPassword, (err, result) => {
+  if (foundUser) {
+    console.log(foundUser);
+    bcrypt.compare(password, users[foundUser.id].password, (err, result) => {
       if (result) {
         req.session['user_id'] = foundUser.id;
         res.redirect("/urls");
@@ -175,6 +172,17 @@ app.post("/urls/:shortURL/edit", (req, res) => {
     res.redirect(`/urls`);
   } else {
     res.redirect("/login");
+  }
+});
+app.get("/urls/:shortURL/edit", (req, res) => {
+  if (req.session["user_id"]) {
+    const shortURL = req.params.shortURL;
+    const id = req.session["user_id"];
+    const email = findEmailByID(id, users);
+    let templateVars = {
+      shortURL: req.params.shortURL, longURL: urlDatabase[shortURL].longURL, userId: id, email: email
+    };
+    res.render('urls_edit', templateVars);
   }
 });
 // --- GET URL JSON ---
