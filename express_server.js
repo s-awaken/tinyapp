@@ -33,9 +33,9 @@ const findUserByEmail = (email) => {
   return null;
 };
 const findEmailByID = (id) => {
-  for (const user in users) {
-    if (users[id] === id) {
-      return user[id].email;
+  for (const userId in users) {
+    if (userId === id) {
+      return users[id].email;
     }
   }
   return;
@@ -78,7 +78,7 @@ app.get("/urls", (req, res) => {
   if (req.session["user_id"]) {
     const id = req.session["user_id"];
     const email = findEmailByID(id);
-
+    console.log(email);
     const URLs = urlsForUser(id);
     let templateVars = {
       userId: id,
